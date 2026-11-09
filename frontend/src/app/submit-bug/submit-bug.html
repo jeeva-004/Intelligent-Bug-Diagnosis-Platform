@@ -1,0 +1,95 @@
+@if (result(); as report) {
+  <section class="panel success" aria-live="polite">
+    <h1>Bug report #{{ report.id }} submitted</h1>
+    <p>
+      It was saved with status <strong>{{ report.status }}</strong>
+      ({{ report.input_method === 'upload' ? 'uploaded files' : 'pasted text' }}).
+    </p>
+    @if (report.files.length) {
+      <ul class="file-list">
+        @for (f of report.files; track f.id) {
+          <li>{{ f.original_filename }} <span class="muted">({{ formatSize(f.size_bytes) }})</span></li>
+        }
+      </ul>
+    }
+    <button type="button" class="primary" (click)="reset()">Submit another report</button>
+  </section>
+} @else {
+  <h1>Submit a bug report</h1>
+  <p class="lead">
+    Paste the details or upload files ({{ allowedList }}, up to {{ maxMb }} MB each). Only the
+    description is required.
+  </p>
+
+  @if (serverError(); as message) {
+    <div class="alert" role="alert">{{ message }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="panel">
+    <div class="field">
+      <label for="title">Title <span class="muted">(optional)</span></label>
+      <input id="title" type="text" formControlName="title" maxlength="255" />
+    </div>
+
+    @for (field of fields; track field.key) {
+      <div class="field">
+        <div class="field-head">
+          <label [for]="field.key">
+            {{ field.label }}
+            @if (field.required) {
+              <span class="required">(required)</span>
+            } @else {
+              <span class="muted">(optional)</span>
+            }
+          </label>
+          <label class="file-button">
+            Upload file
+            <input
+              type="file"
+              class="visually-hidden"
+              [accept]="allowedList"
+              (change)="onFileSelected(field.key, $event)"
+            />
+          </label>
+        </div>
+
+        @if (files()[field.key]; as file) {
+          <div class="chosen-file">
+            <span>
+              {{ file.name }} <span class="muted">({{ formatSize(file.size) }})</span> will be used
+              instead of pasted text.
+            </span>
+            <button type="button" class="link" (click)="removeFile(field.key)">Remove</button>
+          </div>
+        } @else {
+          <textarea
+            [id]="field.key"
+            [formControlName]="field.key"
+            [rows]="field.rows"
+            [placeholder]="field.placeholder"
+            [attr.aria-describedby]="fieldErrors()[field.key] ? field.key + '-error' : null"
+          ></textarea>
+        }
+
+        @if (fieldErrors()[field.key]; as error) {
+          <p class="error" [id]="field.key + '-error'" role="alert">{{ error }}</p>
+        }
+      </div>
+    }
+
+    <div class="field">
+      <label for="environment">Environment <span class="muted">(optional)</span></label>
+      <input
+        id="environment"
+        type="text"
+        formControlName="environment"
+        maxlength="255"
+        placeholder="For example: Windows 11, Firefox 128, version 2.4.1"
+      />
+    </div>
+
+    <button type="submit" class="primary" [disabled]="submitting()">
+      {{ submitting() ? 'Submitting…' : 'Submit bug report' }}
+    </button>
+  </form>
+}

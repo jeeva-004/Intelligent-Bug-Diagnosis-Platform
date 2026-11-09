@@ -1,0 +1,34 @@
+:root {
+  --ink: #1b2430;
+  --muted: #5b6776;
+  --line: #d5dbe3;
+  --surface: #ffffff;
+  --page: #f4f6f8;
+  --accent: #1f5fbf;
+  --accent-ink: #ffffff;
+  --danger: #b3261e;
+  --danger-bg: #fdecea;
+  --ok: #1d6b3a;
+  --ok-bg: #e8f5ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--ink);
+  background: var(--page);
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
