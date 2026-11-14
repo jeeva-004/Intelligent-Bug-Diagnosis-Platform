@@ -52,3 +52,45 @@ class BugReportFile(Base):
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, nullable=False)
 
     bug_report: Mapped[BugReport] = relationship(back_populates="files")
+
+
+# ---- Historical defect knowledge base (M1.4, see M1.2 schema section 7.2) ----
+from sqlalchemy import UniqueConstraint  # noqa: E402
+
+
+class HistoricalDefect(Base):
+    __tablename__ = "historical_defects"
+    __table_args__ = (UniqueConstraint("source", "source_bug_id", name="uq_defect_source_bug"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source: Mapped[str] = mapped_column(Enum("mozilla", "apache", "eclipse", name="defect_source"), nullable=False)
+    source_bug_id: Mapped[str] = mapped_column(String(50), nullable=False)
+    project: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    component: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    title: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(BigText, nullable=True)
+    stack_trace: Mapped[str | None] = mapped_column(BigText, nullable=True)
+    resolution_text: Mapped[str | None] = mapped_column(BigText, nullable=True)
+    status: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    resolution: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    severity: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    priority: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    duplicate_of: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    comments: Mapped[list["DefectComment"]] = relationship(
+        back_populates="defect", cascade="all, delete-orphan"
+    )
+
+
+class DefectComment(Base):
+    __tablename__ = "defect_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    defect_id: Mapped[int] = mapped_column(ForeignKey("historical_defects.id", ondelete="CASCADE"), nullable=False)
+    comment_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(BigText, nullable=False)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    defect: Mapped[HistoricalDefect] = relationship(back_populates="comments")

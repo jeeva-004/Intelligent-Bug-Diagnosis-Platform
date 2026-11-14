@@ -9,18 +9,19 @@ Infosys Springboard Virtual Internship project.
 | M1.1 Research and technical understanding | Done (document) |
 | M1.2 System architecture | Done (document) |
 | M1.3 Bug Submission Module | Done (this repository) |
-| M1.4 Historical Defect Knowledge Base | Not started |
+| M1.4 Historical Defect Knowledge Base | Built; run it on the real datasets (see below) |
 
 ## Tech stack (confirmed)
 
 Angular (frontend), Python with FastAPI (backend), MySQL (bug records and defect metadata),
 ChromaDB (vector store), sentence-transformers (embeddings), Ollama (local LLM runtime),
-pandas (data cleaning). Only the parts needed for M1.3 are implemented so far.
+pandas (data cleaning). The agents are not implemented yet.
 
 ## Repository layout
 
 ```
-backend/    FastAPI app (API, validation, MySQL storage) and tests
+backend/    FastAPI app (API, validation, MySQL storage), knowledge base pipeline (app/kb) and tests
+docs/       M1.4 knowledge base notes
 frontend/   Angular app (bug submission page)
 ```
 
@@ -79,3 +80,28 @@ npm start
 ```
 
 Open http://localhost:4200. The backend address is set in `frontend/src/app/config.ts`.
+
+## M1.4 Historical Defect Knowledge Base
+
+Details: [docs/M1.4-knowledge-base.md](docs/M1.4-knowledge-base.md)
+
+1. Unzip both Kaggle dataset zips into `backend/data/` (any sub-folders are fine).
+2. In `backend/`, with the virtual environment active and `pip install -r requirements.txt` done
+   (this now installs sentence-transformers, which downloads PyTorch; the first run also downloads the embedding model):
+
+```bash
+# quick trial first (small sample, a few minutes)
+python -m app.kb.build --data-dir data --reset --apache-sample 1000 --bugzilla-sample 1000
+
+# full build with the default sample (Apache 10,000 + all Mozilla and Eclipse rows)
+python -m app.kb.build --data-dir data --reset
+
+# search
+python -m app.kb.search "NullPointerException when saving a file"
+python -m app.kb.search --bug-id 1          # use a bug submitted through the UI as the query
+
+# retrieval test on known Apache duplicate pairs
+python -m app.kb.evaluate --pairs 200
+```
+
+Settings (sample size, chunk size, model) are in `backend/.env.example`.

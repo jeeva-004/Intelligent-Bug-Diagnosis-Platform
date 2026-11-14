@@ -1,12 +1,3 @@
-import os
-import tempfile
-
-# Use a throwaway SQLite database and upload folder for tests (set before the app is imported).
-_tmp = tempfile.mkdtemp()
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.db"
-os.environ["UPLOAD_DIR"] = f"{_tmp}/uploads"
-os.environ["MAX_UPLOAD_BYTES"] = "1024"
-
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
